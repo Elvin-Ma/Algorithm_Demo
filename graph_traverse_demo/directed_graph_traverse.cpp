@@ -3,6 +3,11 @@
 #include <memory>
 #include <unordered_map>
 #include <stack>
+#include <unordered_map>
+
+#define PRINT_NODE_INFO(node)                              \
+  std::cout << "node: " << node->getName() << " ==> ";     \
+  std::cout << "value: " << node->getValue() << std::endl;
 
 class Node {
 public:
@@ -176,6 +181,16 @@ public:
     preorder_traversal_stack(root_);
   }
 
+  void midorder_traversal_stack() {
+    midorder_traversal_stack(root_);
+  }
+
+  void endorder_traversal_stack() {
+    endorder_traversal_stack(root_);
+  }
+
+
+  // 前序遍历：根结点 ---> 左子树 ---> 右子树
   // void preorder_traversal_stack(Node* node) {
   //   std::stack<Node*> node_stack;
   //   if (!node) {
@@ -199,13 +214,14 @@ public:
   //     }
   //   }
   // }
+
+  // 前序遍历：根结点 ---> 左子树 ---> 右子树
   void preorder_traversal_stack(Node* node) {
     std::stack<Node*> node_stack;
     while(!node_stack.empty() || node != nullptr) {
       if (node != nullptr) { //
         // 直接将根节点先输出
-        std::cout << "node: " << node->getName() << " ==> ";
-        std::cout << "value: " << node->getValue() << std::endl;
+        PRINT_NODE_INFO(node);
         node_stack.push(node);  // 首次根节点入栈
         node = node->getLeft(); // 每次都首先访问左节点
       } else {
@@ -217,7 +233,45 @@ public:
   }
 
   // 中序遍历：左子树 ---> 根节点 --> 右子树
-  // 策略相似
+  void midorder_traversal_stack(Node* node) {
+    std::stack<Node*> node_stack;
+    while(!node_stack.empty() || node != nullptr) {
+      if (node != nullptr) {
+        node_stack.push(node);  // 首次根节点入栈
+        node = node->getLeft(); // 每次都首先访问左节点
+      } else {
+        node = node_stack.top(); // node为空时再访问右节点
+        PRINT_NODE_INFO(node);
+        node_stack.pop();        // 出栈之后再去访问右路分支
+        node = node->getRight(); // 重新赋值--> 相当于删除了栈中一个节点,
+      }
+    }
+  }
+
+  // 后序遍历：左子树 ---> 右子树 --> 根节点
+  void endorder_traversal_stack(Node* node) {
+    std::stack<Node*> node_stack;
+    std::unordered_map<Node*, int32_t> node_count;
+
+    while(!node_stack.empty() || node != nullptr) {
+      if (node != nullptr) {
+        node_stack.push(node);
+        node_count.emplace(node, 1);
+        node = node->getLeft();
+      } else {
+        node = node_stack.top(); // node : 2
+        auto node_temp = node_count.find(node);
+        if (node_temp->second == 2) {
+          node_stack.pop();
+          PRINT_NODE_INFO(node);
+          node = nullptr;
+        } else {
+          node_count[node] = 2;
+          node = node->getRight();
+        }
+      }
+    }
+  }
 
 private:
   std::unordered_map<std::string, std::unique_ptr<Node>> nodes_;
@@ -235,7 +289,8 @@ int main(int32_t argc, char* argv[]) {
   graph->setRoot("a");
   Node* root = graph->getRoot();
   // graph->preorder_traversal_recursive();
-  graph->preorder_traversal_stack();
+  // graph->preorder_traversal_stack();
+  graph->endorder_traversal_stack();
   std::cout << "run directed_graph_traverse.cpp successfully !!!" << std::endl;
   return 0;
 }
